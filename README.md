@@ -4,7 +4,7 @@
 
 ### Easy way
 
-Download and unzip the package. https://drive.google.com/file/d/0B_ImgSZV-f4DUER0a2o1c1ZKOEk/view?usp=sharing 
+Download and unzip the package. https://epam-my.sharepoint.com/:u:/p/levente_hortobagyi/EffW4VeT1kFEoQoiUlx63QEBcNBzY3XV9T65rTYTVoZPuw?e=viuoa2
 
 It contains everything needed for this project.<br>
 Set the SPARK_HOMEWORK environment variable to point to the directory you unzipped the package to.
