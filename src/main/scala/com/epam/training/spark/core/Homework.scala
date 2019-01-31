@@ -59,16 +59,46 @@ object Homework {
 
   }
 
-  def getRawDataWithoutHeader(sc: SparkContext, rawDataPath: String): RDD[List[String]] = ???
+  def getRawDataWithoutHeader(sc: SparkContext, rawDataPath: String): RDD[List[String]] = {
+    val rddRaw = sc.textFile(rawDataPath)
+    rddRaw.filter(!_.startsWith("#")).map(_.split(";", 7).toList)
+  }
 
-  def findErrors(rawData: RDD[List[String]]): List[Int] = ???
+  def findErrors(rawData: RDD[List[String]]): List[Int] = {
+    val rddErrors = rawData.map(sl => sl.map(x => if (x == "") 1 else 0))
+    rddErrors.reduce((ls1, ls2) => List(
+        ls1(0) + ls2(0)
+      , ls1(1) + ls2(1)
+      , ls1(2) + ls2(2)
+      , ls1(3) + ls2(3)
+      , ls1(4) + ls2(4)
+      , ls1(5) + ls2(5)
+      , ls1(6) + ls2(6)
+    ))
+  }
 
-  def mapToClimate(rawData: RDD[List[String]]): RDD[Climate] = ???
+  def mapToClimate(rawData: RDD[List[String]]): RDD[Climate] = {
+    rawData.map(x => Climate.apply(x(0), x(1), x(2), x(3), x(4), x(5), x(6)))
+  }
 
-  def averageTemperature(climateData: RDD[Climate], month: Int, dayOfMonth: Int): RDD[Double] = ???
+  def averageTemperature(climateData: RDD[Climate], month: Int, dayOfMonth: Int): RDD[Double] = {
+    climateData
+      .filter(x => (x.observationDate.getMonthValue == month) && (x.observationDate.getDayOfMonth == dayOfMonth))
+      .map(_.meanTemperature.value)
+  }
 
-  def predictTemperature(climateData: RDD[Climate], month: Int, dayOfMonth: Int): Double = ???
-
+  def predictTemperature(climateData: RDD[Climate], month: Int, dayOfMonth: Int): Double = {
+    val rddFilteredValues = climateData
+      .filter(x =>
+          ((x.observationDate.getMonthValue == month) && (x.observationDate.getDayOfMonth == dayOfMonth))
+        ||
+          ((x.observationDate.plusDays(1).getMonthValue == month) && (x.observationDate.plusDays(1).getDayOfMonth == dayOfMonth))
+        ||
+          ((x.observationDate.minusDays(1).getMonthValue == month) && (x.observationDate.minusDays(1).getDayOfMonth == dayOfMonth))
+        ).map(_.meanTemperature.value)
+//        val rddFilteredValues = climateData.map(_.meanTemperature.value)
+    rddFilteredValues.reduce(_ + _) / rddFilteredValues.count()
+  }
 
 }
 
